@@ -1,6 +1,6 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
-RUN ln -fs /usr/share/zoneinfo/Europe/Sofia /etc/localtime
+RUN ln -fs /usr/share/zoneinfo/CET /etc/localtime
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install package dependencies

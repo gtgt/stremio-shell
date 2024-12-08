@@ -1,7 +1,7 @@
 
 VERSION := $(shell grep -oPm1 'VERSION=\K.+' stremio.pro)
 
-NSS_DIR := /usr/lib/x86_64-linux-gnu/nss
+NSS_DIR := /usr/lib/x86_64-linux-gnu
 
 DEST_DIR := dist-linux
 BUILD_DIR := build
@@ -31,15 +31,17 @@ ALL: ${APPIMAGE_FILE}
 ${DEST_DIR}: ${STREMIO_BIN} ${NODE_BIN} ${FFMPEG_BIN} ${FFPROBE_BIN} ${ICON_BIN} ${STREMIO_DESKTOP} ${QT_RESOURCES} ${QT_TRANSLATIONS}
 	mkdir -p ${DEST_DIR}/lib
 	cp -r $^ ${DEST_DIR}/
-	cp -r ${NSS_DIR} ${DEST_DIR}/lib/
+	cp -r ${NSS_DIR}/libnss* ${NSS_DIR}/libfreebl* ${NSS_DIR}/libsoftokn* ${NSS_DIR}/libsmime3* ${NSS_DIR}/libssl3* ${DEST_DIR}/lib/
 
 ${APPIMAGE_FILE}: ${SERVER_JS} linuxdeployqt
 	./linuxdeployqt --appimage-extract
 	#This will create  Stremio-x86_64.AppImage
-	./squashfs-root/AppRun ${DEST_DIR}/stremio -qmldir=. -bundle-non-qt-libs -appimage
+    # -unsupported-bundle-everything
+	./squashfs-root/AppRun ${DEST_DIR}/stremio -qmldir=. -bundle-non-qt-libs -unsupported-allow-new-glibc -appimage -verbose=3
 
 ${SERVER_JS}: ${DEST_DIR}
 	wget "https://s3-eu-west-1.amazonaws.com/stremio-artifacts/four/v${VERSION}/server.js" -qO ${SERVER_JS} || rm ${SERVER_JS}
+	sed -i 's/details.family.toLowerCase()/details.family.toString().toLowerCase()/g' ${SERVER_JS}
 
 linuxdeployqt:
 	wget "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -qO $@ || rm $@
